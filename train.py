@@ -14,6 +14,7 @@ def create_connection(db_file):
 
 lastWord = ""
 
+
 def addword(conn, cursor, word1, word2):
     cursor.execute("SELECT count(id) FROM t WHERE first = ? AND second = ?", (word1, word2))
     row = [item[0] for item in cursor.fetchall()]
@@ -22,6 +23,7 @@ def addword(conn, cursor, word1, word2):
     else:
         cursor.execute("UPDATE t SET num = num + 1 WHERE first = ? AND second = ?", (word1, word2))
     conn.commit()
+
 
 def addRow(conn, cursor, line, toLower):
     if toLower:

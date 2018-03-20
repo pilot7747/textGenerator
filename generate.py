@@ -24,6 +24,7 @@ def getnextword(sqlCursor, currentWord):
         return random.choice(reslist)
     return None
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, help='path to model file', required=True)
