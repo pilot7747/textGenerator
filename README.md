@@ -5,6 +5,6 @@ For training of generator you should run train.py. You can run it with --help ar
 
 Example
 
-> python train.py --input-dir text.txt --lc
+> python train.py --input-dir <Directory>/text.txt --lc
 
 > python generate.py --model model.sqlite --length 100
