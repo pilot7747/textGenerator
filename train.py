@@ -93,6 +93,7 @@ if __name__ == '__main__':
 
     if inputPath != "":
         filelist = glob.glob(inputPath + "*.txt")
+        print(filelist)
         for filename in filelist:
             f = open(filename)
             currentposition = 0
