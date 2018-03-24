@@ -60,6 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--input-dir', action='store', type=str, help='path to folder with input files')
     parser.add_argument('--model', type=str, help='path to model file')
     parser.add_argument('--lc', action='store_true', help='to lower case')
+    parser.add_argument('--file', type=str, help='path to input file')
     args = parser.parse_args()
     current = 0
     toLower = args.lc
@@ -81,7 +82,11 @@ if __name__ == '__main__':
     cursor = conn.cursor()
 
     if inputPath != "":
-        filelist = glob.glob(inputPath + "*.txt")
+        filelist = list()
+        if args.file:
+            filelist.append(inputPath + args.file)
+        else:
+            filelist = glob.glob(inputPath + "*.txt")
         for filename in filelist:
             f = open(filename)
             currentposition = 0
