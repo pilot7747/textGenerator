@@ -41,9 +41,12 @@ lastWord = ""
 
 
 def addword(conn, cursor, word1, word2):
-    cursor.execute("INSERT OR IGNORE INTO t(first, second, num) VALUES(?, ?, 0)", (word1, word2))
-    cursor.execute("UPDATE t SET num = num + 1 WHERE first = ? AND second = ?", (word1, word2))
-
+    cursor.execute("SELECT count(id) FROM t WHERE first = ? and second = ?", (word1, word2))
+    row = cursor.fetchall()
+    if row[0][0] == 0:
+        cursor.execute("INSERT INTO t(first, second, num) VALUES (?, ?, 1)", (word1, word2))
+    else:
+        cursor.execute("UPDATE t SET num = num + 1 WHERE first = ? AND second = ?", (word1, word2))
 
 
 def addRow(conn, cursor, line, toLower):
@@ -92,7 +95,7 @@ if __name__ == '__main__':
         for filename in filelist:
             f = open(filename)
             currentposition = 0
-            for line in f.readlines():
+            for line in f:
                 addRow(conn, cursor, line, toLower)
                 currentposition += 1
     else:
