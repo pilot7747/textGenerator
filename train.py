@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sqlite3
 import re
@@ -17,17 +18,6 @@ class BColors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
-
-def progress(count, total, status=''):
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
 
 
 def create_connection(db_file):
@@ -51,7 +41,6 @@ def addword(conn, cursor, word1, word2):
 
 
 def addRow(conn, cursor, line, toLower):
-    line = line.encode('utf-8')
     if toLower:
         line = line.lower()
     print(line)
