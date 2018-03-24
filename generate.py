@@ -27,6 +27,7 @@ def getnextword(sqlCursor, currentWord):
 
 
 if __name__ == '__main__':
+    print(sys.getdefaultencoding())
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, help='path to model file', required=True)
     parser.add_argument('--seed', type=str, help='first word, if not defined - random')
