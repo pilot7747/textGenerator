@@ -1,6 +1,7 @@
 import argparse
 import sqlite3
 import random
+import sys
 
 
 def getnum(sqlCursor, query):
@@ -26,9 +27,10 @@ def getnextword(sqlCursor, currentWord):
 
 
 if __name__ == '__main__':
+    print(sys.getdefaultencoding())
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, help='path to model file', required=True)
-    parser.add_argument('--seed', type=str, help='first word, if not defined — random')
+    parser.add_argument('--seed', type=str, help='first word, if not defined - random')
     parser.add_argument('--length', type=int, required=True, help='number of printed words')
     parser.add_argument('--output', help='path to output file, if not defined text will be printed to console')
     #args = parser.parse_args('--model model.sqlite --length 100'.split())
