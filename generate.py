@@ -28,7 +28,6 @@ def getnextword(sqlCursor, currentWord):
 
 
 if __name__ == '__main__':
-    print(sys.getdefaultencoding())
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, help='path to model file', required=True)
     parser.add_argument('--seed', type=str, help='first word, if not defined - random')
@@ -40,7 +39,6 @@ if __name__ == '__main__':
     conn = sqlite3.connect(connectionStr)
     cursor = conn.cursor()
     size = getnum(cursor, "SELECT count(id) FROM t")
-    print(size)
     word = ""
     random.seed()
     if args.seed:
