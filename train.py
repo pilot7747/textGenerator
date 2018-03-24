@@ -54,6 +54,7 @@ def addRow(conn, cursor, line, toLower):
     if toLower:
         line = line.lower()
     words = re.findall(r"[\w']+", re.sub('\d', ' ', line))
+    print(words)
     current = 0
     global lastWord
     if lastWord != "" and len(words) != 0:
@@ -97,7 +98,6 @@ if __name__ == '__main__':
             f = open(filename)
             currentposition = 0
             for line in f:
-                print(line)
                 addRow(conn, cursor, line, toLower)
                 currentposition += 1
     else:
