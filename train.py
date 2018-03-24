@@ -70,6 +70,7 @@ def addRow(conn, cursor, line, toLower):
         lastWord = words[-1]
 
 if __name__ == '__main__':
+    print(sys.getdefaultencoding())
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-dir', action='store', type=str, help='path to folder with input files')
     parser.add_argument('--model', type=str, help='path to model file')
