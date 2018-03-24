@@ -83,21 +83,20 @@ if __name__ == '__main__':
     conn.commit()
     cursor = conn.cursor()
 
-if inputPath != "":
-    filelist = glob.glob(inputPath + "*.txt")
-    for filename in filelist:
-        f = open(filename)
-        currentposition = 0
+    if inputPath != "":
+        filelist = glob.glob(inputPath + "*.txt")
+        for filename in filelist:
+            f = open(filename)
+            currentposition = 0
             for line in f:
                 addRow(conn, cursor, line, toLower)
                 currentposition += 1
-else:
-    while True:
-        line = input()
-        if not line:
-            break
+    else:
+        while True:
+            line = input()
+            if not line:
+                break
             addRow(conn, cursor, line, toLower)
     conn.commit()
     conn.close()
     print(BColors.OKGREEN + 'Done! Model has been saved to ' + connectionStr + BColors.ENDC)
-
