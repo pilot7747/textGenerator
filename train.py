@@ -51,6 +51,7 @@ def addword(conn, cursor, word1, word2):
 
 
 def addRow(conn, cursor, line, toLower):
+    line = line.encode('utf-8')
     if toLower:
         line = line.lower()
     print(line)
