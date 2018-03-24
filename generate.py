@@ -33,7 +33,6 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=str, help='first word, if not defined - random')
     parser.add_argument('--length', type=int, required=True, help='number of printed words')
     parser.add_argument('--output', help='path to output file, if not defined text will be printed to console')
-    #args = parser.parse_args('--model model.sqlite --length 100'.split())
     args = parser.parse_args()
     connectionStr = args.model
     conn = sqlite3.connect(connectionStr)
@@ -56,7 +55,7 @@ if __name__ == '__main__':
         result = result + ' ' + word
         currentLength = currentLength + 1
     if args.output:
-        file = open(args.output)
+        file = open(args.output, 'w')
         file.write(result)
         file.close()
     else:
