@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sqlite3
 import re
 from sqlite3 import Error
