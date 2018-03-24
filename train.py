@@ -42,9 +42,7 @@ def addword(conn, cursor, word1, word2):
 def addRow(conn, cursor, line, toLower):
     if toLower:
         line = line.lower()
-    print(line)
     words = re.findall(r"[\w']+", re.sub('\d', ' ', line))
-    print(words)
     current = 0
     global lastWord
     if lastWord != "" and len(words) != 0:
@@ -58,7 +56,6 @@ def addRow(conn, cursor, line, toLower):
         lastWord = words[-1]
 
 if __name__ == '__main__':
-    print(sys.getdefaultencoding())
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-dir', action='store', type=str, help='path to folder with input files')
     parser.add_argument('--model', type=str, help='path to model file')
