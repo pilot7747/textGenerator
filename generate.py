@@ -39,6 +39,7 @@ if __name__ == '__main__':
     conn = sqlite3.connect(connectionStr)
     cursor = conn.cursor()
     size = getnum(cursor, "SELECT count(id) FROM t")
+    print(size)
     word = ""
     random.seed()
     if args.seed:
