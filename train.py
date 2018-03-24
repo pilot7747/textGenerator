@@ -97,6 +97,7 @@ if __name__ == '__main__':
             f = open(filename)
             currentposition = 0
             for line in f:
+                print(line)
                 addRow(conn, cursor, line, toLower)
                 currentposition += 1
     else:
