@@ -86,7 +86,11 @@ if __name__ == '__main__':
         if args.file:
             filelist.append(inputPath + args.file)
         else:
-            filelist = glob.glob(inputPath + "*.txt")
+            for top, dirs, files in os.walk(args.input_dir):
+                for directory in dirs:
+                    path = str(os.path.join(top, directory))
+                    filelist += glob.glob(path + "*.txt")
+            filelist += glob.glob(args.input_dir + "*.txt")
         for filename in filelist:
             f = open(filename)
             currentposition = 0
