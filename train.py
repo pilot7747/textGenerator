@@ -105,4 +105,4 @@ if __name__ == '__main__':
             addRow(conn, cursor, line, toLower)
     conn.commit()
     conn.close()
-    print(BColors.OKGREEN + 'Done! Model has been saved to ' + connectionStr + BColors.ENDC)
+    print(BColors.OKGREEN + 'Done! Model has saved to ' + connectionStr + BColors.ENDC)
