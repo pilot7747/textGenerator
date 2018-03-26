@@ -93,8 +93,8 @@ if __name__ == '__main__':
             for top, dirs, files in os.walk(args.input_dir):
                 for directory in dirs:
                     path = str(os.path.join(top, directory))
-                    file_list += glob.glob(path + "*.txt")
-            file_list += glob.glob(args.input_dir + "*.txt")
+                    file_list += glob.glob(path + "/*.txt")
+            file_list += glob.glob(args.input_dir + "/*.txt")
         for filename in file_list:
             f = open(filename)
             current_position = 0
