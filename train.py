@@ -1,9 +1,8 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import sqlite3
 import re
 from sqlite3 import Error
 import argparse
-import sys
 import os
 import glob
 
@@ -21,11 +20,11 @@ class BColors:
 
 def create_connection(db_file):
     try:
-        conn = sqlite3.connect(db_file)
+        connection = sqlite3.connect(db_file)
     except Error as e:
         print(e)
     finally:
-        conn.close()
+        connection.close()
 
 lastWord = ""
 
@@ -39,19 +38,19 @@ def addword(conn, cursor, word1, word2):
         cursor.execute("UPDATE t SET num = num + 1 WHERE first = ? AND second = ?", (word1, word2))
 
 
-def addRow(conn, cursor, line, toLower):
-    if toLower:
-        line = line.lower()
-    words = re.findall(r"[\w']+", re.sub('\d', ' ', line))
-    current = 0
+def add_row(connection, sql_cursor, text_line, to_lower):
+    if to_lower:
+        text_line = text_line.lower()
+    words = re.findall(r"[\w']+", re.sub('\d', ' ', text_line))
+    current_ind = 0
     global lastWord
     if lastWord != "" and len(words) != 0:
-        addword(conn, cursor, lastWord, words[0])
+        addword(connection, sql_cursor, lastWord, words[0])
     for word in words[:-1]:
         word1 = word
-        word2 = words[current + 1]
-        addword(conn, cursor, word1, word2)
-        current = current + 1
+        word2 = words[current_ind + 1]
+        addword(conn, sql_cursor, word1, word2)
+        current_ind = current_ind + 1
     if len(words) != 0:
         lastWord = words[-1]
 
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     connectionStr = "model.sqlite"
     inputPath = args.input_dir
     if args.model:
-        connectionStr = args.model + "model.sqlite"
+        connectionStr = args.model
     try:
         os.remove(connectionStr)
         create_connection(connectionStr)
@@ -82,27 +81,27 @@ if __name__ == '__main__':
     cursor = conn.cursor()
 
     if inputPath != "":
-        filelist = list()
+        file_list = list()
         if args.file:
-            filelist.append(inputPath + args.file)
+            file_list.append(inputPath + args.file)
         else:
             for top, dirs, files in os.walk(args.input_dir):
                 for directory in dirs:
                     path = str(os.path.join(top, directory))
-                    filelist += glob.glob(path + "*.txt")
-            filelist += glob.glob(args.input_dir + "*.txt")
-        for filename in filelist:
+                    file_list += glob.glob(path + "*.txt")
+            file_list += glob.glob(args.input_dir + "*.txt")
+        for filename in file_list:
             f = open(filename)
-            currentposition = 0
+            current_position = 0
             for line in f:
-                addRow(conn, cursor, line, toLower)
-                currentposition += 1
+                add_row(conn, cursor, line, toLower)
+                current_position += 1
     else:
         while True:
             line = input()
             if not line:
                 break
-            addRow(conn, cursor, line, toLower)
+            add_row(conn, cursor, line, toLower)
     conn.commit()
     conn.close()
     print(BColors.OKGREEN + 'Done! Model has saved to ' + connectionStr + BColors.ENDC)
