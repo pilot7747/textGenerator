@@ -30,12 +30,15 @@ lastWord = ""
 
 
 def addword(conn, cursor, word1, word2):
-    cursor.execute("SELECT count(id) FROM t WHERE first = ? and second = ?", (word1, word2))
+    squerry = "SELECT count(id) FROM t WHERE first = ? and second = ?"
+    cursor.execute(squerry, (word1, word2))
     row = cursor.fetchall()
     if row[0][0] == 0:
-        cursor.execute("INSERT INTO t(first, second, num) VALUES (?, ?, 1)", (word1, word2))
+        squerry = "INSERT INTO t(first, second, num) VALUES (?, ?, 1)"
+        cursor.execute(squerry, (word1, word2))
     else:
-        cursor.execute("UPDATE t SET num = num + 1 WHERE first = ? AND second = ?", (word1, word2))
+        squerry = "UPDATE t SET num = num + 1 WHERE first = ? AND second = ?"
+        cursor.execute(squerry, (word1, word2))
 
 
 def add_row(connection, sql_cursor, text_line, to_lower):
@@ -56,7 +59,8 @@ def add_row(connection, sql_cursor, text_line, to_lower):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input-dir', action='store', type=str, help='path to folder with input files')
+    parser.add_argument('--input-dir', action='store',
+                        type=str, help='path to folder with input files')
     parser.add_argument('--model', type=str, help='path to model file')
     parser.add_argument('--lc', action='store_true', help='to lower case')
     parser.add_argument('--file', type=str, help='path to input file')
@@ -74,7 +78,8 @@ if __name__ == '__main__':
     except OSError:
         pass
     conn = sqlite3.connect(connectionStr)
-    conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, first TEXT, second TEXT, num INTEGER)")
+    conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT "
+                 "NOT NULL, first TEXT, second TEXT, num INTEGER)")
     conn.commit()
     conn.execute("CREATE INDEX first_word_index ON t(first, second)")
     conn.commit()
@@ -104,4 +109,5 @@ if __name__ == '__main__':
             add_row(conn, cursor, line, toLower)
     conn.commit()
     conn.close()
-    print(BColors.OKGREEN + 'Done! Model has saved to ' + connectionStr + BColors.ENDC)
+    print(BColors.OKGREEN + 'Done! Model has '
+                            'saved to ' + connectionStr + BColors.ENDC)
