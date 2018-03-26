@@ -47,6 +47,11 @@ if __name__ == '__main__':
     random.seed()
     if args.seed:
         word = args.seed
+        cursor.execute("SELECT count(id) "
+                       "FROM t WHERE first = ? OR second = ?", (word, word))
+        seedExists = cursor.fetchall()[0][0]
+        if seedExists == 0:
+            raise ValueError('Seed word does not exist')
     else:
         word = get_word(cursor,
                         "SELECT first FROM t WHERE id=?",
