@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import sqlite3
 import re
 from sqlite3 import Error
@@ -31,7 +33,7 @@ def create_connection(db_file):
 
 
 lastWord = ""
-model = ()
+
 # Добавляем слово в модель
 
 
@@ -45,6 +47,8 @@ def addword(conn, cursor, word1, word2):
     else:
         squerry = "UPDATE t SET num = num + 1 WHERE first = ? AND second = ?"
         cursor.execute(squerry, (word1, word2))
+
+
 # Парсим строчку и добавляем ее по словам в модель
 
 
@@ -65,9 +69,15 @@ def add_row(connection, sql_cursor, text_line, to_lower):
         lastWord = words[-1]
 
 
-if __name__ == '__main__':
-    # Парсим аргументы
-    parser = argparse.ArgumentParser()
+# Создаем парсер
+def create_parser():
+    parser = argparse.ArgumentParser(description='Text generator.'
+                                                 ' Use this script for'
+                                                 ' generating model and after'
+                                                 ' that generate.py'
+                                                 ' for generating'
+                                                 ' complete text.',
+                                     add_help=True)
     parser.add_argument('--input-dir', action='store',
                         type=str, help='path to folder with input files')
     parser.add_argument('--model', action='store',
@@ -75,25 +85,11 @@ if __name__ == '__main__':
     parser.add_argument('--lc', action='store_true', help='to lower case')
     parser.add_argument('--file', action='store',
                         type=str, help='path to input file')
-    args = parser.parse_args()
-    inputPath = args.input_dir
-    connectionStr = "model.sqlite"
-    # Если пользователь не указал модель
-    if args.model:
-        connectionStr = args.model
-    try:
-        # Если такой файл уже есть, то удаляем
-        os.remove(connectionStr)
-        create_connection(connectionStr)
-    except OSError:
-        pass
-    # Коннектимся к бд
-    conn = sqlite3.connect(connectionStr)
-    conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT "
-                 "NOT NULL, first TEXT, second TEXT, num INTEGER)")
-    conn.commit()
-    conn.execute("CREATE INDEX first_word_index ON t(first, second)")
-    conn.commit()
+    return parser
+
+
+# Генерация модели
+def generate(args, inputPath, conn):
     cursor = conn.cursor()
     toLower = args.lc
     if inputPath != "":
@@ -112,10 +108,8 @@ if __name__ == '__main__':
         # Непосредственно добавляем все построчно в модель
         for filename in file_list:
             f = open(filename)
-            current_position = 0
             for line in f:
                 add_row(conn, cursor, line, toLower)
-                current_position += 1
     else:
         # Чтение с консоли
         while True:
@@ -125,5 +119,28 @@ if __name__ == '__main__':
             add_row(conn, cursor, line, toLower)
     conn.commit()
     conn.close()
+
+
+if __name__ == '__main__':
+    # Парсим аргументы
+    parser = create_parser()
+    args = parser.parse_args()
+    inputPath = args.input_dir
+    connectionStr = "model.sqlite"
+    # Если пользователь не указал модель
+    if args.model:
+        connectionStr = args.model
+    if os.path.exists(connectionStr):
+        # Если такой файл уже есть, то удаляем
+        os.remove(connectionStr)
+        create_connection(connectionStr)
+    # Коннектимся к бд
+    conn = sqlite3.connect(connectionStr)
+    conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT "
+                 "NOT NULL, first TEXT, second TEXT, num INTEGER)")
+    conn.commit()
+    conn.execute("CREATE INDEX first_word_index ON t(first, second)")
+    conn.commit()
+    generate(args, inputPath, conn)
     print(BColors.OKGREEN + 'Done! Model has '
                             'saved to ' + connectionStr + BColors.ENDC)

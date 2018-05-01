@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+
 import argparse
 import sqlite3
 import random
 
-# Берем единственное число из результата запроса
+# Функция, которая при запросе, возвращающем одно
+# единственное значение, возвращает это значение
 
 
 def get_num(sql_cursor, query):
@@ -23,8 +25,8 @@ def get_word(sql_cursor, query, list_arg):
 
 
 def get_next_word(sql_cursor, current_word):
-    sql_cursor.execute("SELECT second, num FROM"
-                       " t WHERE first = ?", current_word)
+    sql_cursor.execute("SELECT second, num FROM t"
+                       " WHERE first = ?", (current_word, ))
     res_list = list()
     for row in sql_cursor.fetchall():
         res_list = res_list + ([row[0]] * row[1])
@@ -33,9 +35,15 @@ def get_next_word(sql_cursor, current_word):
     return None
 
 
-if __name__ == '__main__':
-    # Парсим аргументы
-    parser = argparse.ArgumentParser()
+# Создаем парсер
+def create_parser():
+    parser = argparse.ArgumentParser(description='Text generator.'
+                                                 ' Use this train.py for'
+                                                 ' generating model and after'
+                                                 ' that use this script'
+                                                 ' for generating'
+                                                 ' complete text.',
+                                     add_help=True)
     parser.add_argument('--model', action='store', type=str,
                         help='path to model file', required=True)
     parser.add_argument('--seed', action='store', type=str,
@@ -45,12 +53,38 @@ if __name__ == '__main__':
     parser.add_argument('--output', action='store',
                         help='path to output file, '
                              'if not defined text will be printed to console')
+    return parser
+
+
+# Генерация текста
+def generate(args, cursor, word):
+    result = list()
+    result.append(word)
+    currentLength = 1
+    while currentLength != args.length:
+        word = get_next_word(cursor, word)
+        if not word:
+            break
+        result.append(word)
+        currentLength += 1
+    if args.output:
+        with open(args.output, 'w') as file:
+            file.write(' '.join(result))
+            file.close()
+    else:
+        print(' '.join(result))
+
+
+if __name__ == '__main__':
+    # Парсим аргументы
+    parser = create_parser()
     args = parser.parse_args()
     connectionStr = args.model
     conn = sqlite3.connect(connectionStr)
     cursor = conn.cursor()
     word = ""
     random.seed()
+    # Выбираем первое слово
     if args.seed:
         word = args.seed
         cursor.execute("SELECT count(id) "
@@ -63,21 +97,6 @@ if __name__ == '__main__':
         word = get_word(cursor,
                         "SELECT first FROM t WHERE id=?",
                         (random.randint(1, size), ))
-    result = word
-    currentLength = 1
-    end = False
     # Генерируем цепочку
-    while currentLength != args.length and (not end):
-        word = get_next_word(cursor, (word, ))
-        if not word:
-            end = True
-            break
-        result = result + ' ' + word
-        currentLength = currentLength + 1
-    if args.output:
-        file = open(args.output, 'w')
-        file.write(result)
-        file.close()
-    else:
-        print(result)
+    generate(args, cursor, word)
     conn.close()
