@@ -6,10 +6,12 @@ from sqlite3 import Error
 import argparse
 import os
 import glob
+import contextlib
+import sys
+import collections
+
 
 # Класс, чтобы менять цвет шрифта в консоли
-
-
 class BColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -20,9 +22,8 @@ class BColors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 # Создаем файл модели
-
-
 def create_connection(db_file):
     try:
         connection = sqlite3.connect(db_file)
@@ -32,45 +33,70 @@ def create_connection(db_file):
         connection.close()
 
 
-lastWord = ""
+last_word = ""
 
-# Добавляем слово в модель
+model = collections.Counter()
 
 
-def addword(conn, cursor, word1, word2):
-    squerry = "SELECT count(id) FROM t WHERE first = ? and second = ?"
-    cursor.execute(squerry, (word1, word2))
-    row = cursor.fetchall()
-    if row[0][0] == 0:
-        squerry = "INSERT INTO t(first, second, num) VALUES (?, ?, 1)"
-        cursor.execute(squerry, (word1, word2))
-    else:
-        squerry = "UPDATE t SET num = num + 1 WHERE first = ? AND second = ?"
-        cursor.execute(squerry, (word1, word2))
+# Добавляет слово в модель
+def add_word(word1, word2):
+    """
+
+    Фунцкия, которая добавляет пару
+    слов в модель. Пример использования:
+    add_word('привет', 'мир')
+    """
+    global model
+    model[(word1, word2)] += 1
+
+
+# Сохраняет модель в бд
+def model_to_db(cursor):
+    """
+
+    Переводит модель из Counter в sqlite.
+    Соответственно, ничего не возвращает,
+    принимает collections.Counter.
+    """
+    global model
+    for pair in model:
+        squerry = "INSERT INTO t(first, second, num) VALUES (?, ?, ?)"
+        cursor.execute(squerry, (pair[0], pair[1], model[pair]))
 
 
 # Парсим строчку и добавляем ее по словам в модель
+def add_row(text_line, to_lower):
+    """
 
-
-def add_row(connection, sql_cursor, text_line, to_lower):
+    Функция, которая обрабатывает строку текста и добавляет ее в
+    модель. Принимает строку и флаг, который говорит, нужно ли ее
+    перееводить в lower case.
+    """
     if to_lower:
         text_line = text_line.lower()
     words = re.findall(r"[\w']+", re.sub('\d', ' ', text_line))
     current_ind = 0
-    global lastWord
-    if lastWord != "" and len(words) != 0:
-        addword(connection, sql_cursor, lastWord, words[0])
+    global last_word
+    # Здесь соединяем последнее слово предыдущей строки
+    # и первое слово новой.
+    if last_word != "" and len(words) != 0:
+        add_word(last_word, words[0])
     for word in words[:-1]:
         word1 = word
         word2 = words[current_ind + 1]
-        addword(conn, sql_cursor, word1, word2)
+        add_word(word1, word2)
         current_ind = current_ind + 1
     if len(words) != 0:
-        lastWord = words[-1]
+        last_word = words[-1]
 
 
 # Создаем парсер
 def create_parser():
+    """
+
+    Функция, которая создает парсер для аргуентов. Ничего не принимает,
+    возвращает argparse.ArgumentParser.
+    """
     parser = argparse.ArgumentParser(description='Text generator.'
                                                  ' Use this script for'
                                                  ' generating model and after'
@@ -88,35 +114,49 @@ def create_parser():
     return parser
 
 
-# Генерация модели
-def generate(args, inputPath, conn):
-    cursor = conn.cursor()
-    toLower = args.lc
-    if inputPath != "":
-        file_list = list()
-        # Вдруг указан конкретный файл
-        if args.file:
-            inputPath = ""
-            file_list.append(inputPath + args.file)
-        else:
-            # Добавляем все txt в папках в список
-            for top, dirs, files in os.walk(args.input_dir):
-                for directory in dirs:
-                    path = str(os.path.join(top, directory))
-                    file_list += glob.glob(path + "/*.txt")
-            file_list += glob.glob(args.input_dir + "/*.txt")
-        # Непосредственно добавляем все построчно в модель
-        for filename in file_list:
-            f = open(filename)
-            for line in f:
-                add_row(conn, cursor, line, toLower)
+# Возвращает генератор из sys.stdout или из файлов
+def get_files_generator(args, input_path):
+    """
+
+    Функция, которая позволяет читать одинаково как из файла, так и
+    из консоли. Принимает аргументы программы и путь к файлам.
+    Возвращает генератор, по которому можно проитерироваться и читать
+    строки.
+    """
+    file_list = list()
+    # Если ввод с консоли
+    if (input_path == "" or input_path is None) and args.file is None:
+        yield sys.stdin
+    # Вдруг указан конкретный файл
+    if args.file:
+        input_path = ""
+        file_list.append(input_path + args.file)
     else:
-        # Чтение с консоли
-        while True:
-            line = input()
-            if not line:
-                break
-            add_row(conn, cursor, line, toLower)
+        # Добавляем все txt в папках в список
+        for top, dirs, files in os.walk(args.input_dir):
+            for directory in dirs:
+                path = str(os.path.join(top, directory))
+                file_list += glob.glob(path + "/*.txt")
+        file_list += glob.glob(args.input_dir + "/*.txt")
+    for file in file_list:
+        with open(file) as f:
+            yield f
+
+
+# Генерация модели
+def generate(args, input_path, conn):
+    """
+
+    Функция, которая по входным данным, начинает решать
+    задачу.
+    """
+    cursor = conn.cursor()
+    to_lower = args.lc
+    # Непосредственно добавляем все построчно в модель
+    for gen in get_files_generator(args, input_path):
+        for line in gen:
+            add_row(line, to_lower)
+    model_to_db(cursor)
     conn.commit()
     conn.close()
 
@@ -125,22 +165,21 @@ if __name__ == '__main__':
     # Парсим аргументы
     parser = create_parser()
     args = parser.parse_args()
-    inputPath = args.input_dir
-    connectionStr = "model.sqlite"
-    # Если пользователь не указал модель
+    input_path = args.input_dir
+    connection_str = "model.sqlite"
+    # Если пользователь указал модель
     if args.model:
-        connectionStr = args.model
-    if os.path.exists(connectionStr):
+        connection_str = args.model
+    if os.path.exists(connection_str):
         # Если такой файл уже есть, то удаляем
-        os.remove(connectionStr)
-        create_connection(connectionStr)
+        os.remove(connection_str)
     # Коннектимся к бд
-    conn = sqlite3.connect(connectionStr)
-    conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT "
-                 "NOT NULL, first TEXT, second TEXT, num INTEGER)")
-    conn.commit()
-    conn.execute("CREATE INDEX first_word_index ON t(first, second)")
-    conn.commit()
-    generate(args, inputPath, conn)
+        with contextlib.closing(sqlite3.connect(connection_str)) as conn:
+            conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT"
+                         " NOT NULL, first TEXT, second TEXT, num INTEGER)")
+            conn.commit()
+            conn.execute("CREATE INDEX first_word_index ON t(first, second)")
+            conn.commit()
+            generate(args, input_path, conn)
     print(BColors.OKGREEN + 'Done! Model has '
-                            'saved to ' + connectionStr + BColors.ENDC)
+                            'saved to ' + connection_str + BColors.ENDC)
