@@ -3,28 +3,46 @@
 import argparse
 import sqlite3
 import random
-
-# Функция, которая при запросе, возвращающем одно
-# единственное значение, возвращает это значение
+import sys
 
 
+# Функция, которая при SQL запросе, возвращающем одно
+# единственное число, возвращает его
 def get_num(sql_cursor, query):
+    """
+
+    Бывает полезно иметь функцию, которая при запросе,
+    результатом которого является одна единственная
+    числовая ячейка, возвращает значение этой ячейки.
+    Вот эта функция.
+    """
     sql_cursor.execute(query)
     row = [item[0] for item in sql_cursor.fetchall()]
     return row[0]
 
+
 # Достаем слово из модели
-
-
 def get_word(sql_cursor, query, list_arg):
+    """
+
+    Бывает полезно иметь функцию, которая при запросе,
+    результатом которого является одна единственная
+    текстовая ячейка, возвращает значение этой ячейки.
+    Вот эта функция.
+    """
     sql_cursor.execute(query, list_arg)
     row = [item[0] for item in sql_cursor.fetchall()]
     return row[0]
 
+
 # Находим следующее слово цепочки
-
-
 def get_next_word(sql_cursor, current_word):
+    """
+
+    Получаем курсор и слово, для которого нужно найти
+    следующее. Возвращаем, соответственно, следующее
+    слово.
+    """
     sql_cursor.execute("SELECT second, num FROM t"
                        " WHERE first = ?", (current_word, ))
     res_list = list()
@@ -37,6 +55,11 @@ def get_next_word(sql_cursor, current_word):
 
 # Создаем парсер
 def create_parser():
+    """
+
+    Функция, которая создает парсер для аргуентов. Ничего не принимает,
+    возвращает argparse.ArgumentParser.
+    """
     parser = argparse.ArgumentParser(description='Text generator.'
                                                  ' Use this train.py for'
                                                  ' generating model and after'
@@ -56,23 +79,39 @@ def create_parser():
     return parser
 
 
+def output_gen(output):
+    """
+
+    Функция, которая позволяет читать одинаково как из файла, так и
+    из консоли. Принимает путь к файлу. Возвращает генератор, по
+    которому можно проитерироваться и писать строки.
+    """
+    if output:
+        with open(output, 'w') as f:
+            yield f
+    else:
+        yield sys.stdout
+
+
 # Генерация текста
 def generate(args, cursor, word):
+    """
+
+    Функция, которая по входным данным, начинает решать
+    задачу.
+    """
     result = list()
     result.append(word)
-    currentLength = 1
-    while currentLength != args.length:
+    current_length = 1
+    while current_length != args.length:
         word = get_next_word(cursor, word)
         if not word:
             break
         result.append(word)
-        currentLength += 1
-    if args.output:
-        with open(args.output, 'w') as file:
-            file.write(' '.join(result))
-            file.close()
-    else:
-        print(' '.join(result))
+        current_length += 1
+    for out in output_gen(args.output):
+        out.write(' '.join(result))
+        out.write('\n')
 
 
 if __name__ == '__main__':
