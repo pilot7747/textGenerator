@@ -1,4 +1,4 @@
-# coding: utf-8
+
 
 import sqlite3
 import re
@@ -133,7 +133,7 @@ def get_files_generator(args, input_path):
         file_list.append(input_path + args.file)
     else:
         # Добавляем все txt в папках в список
-        for top, dirs, files in os.walk(args.input_dir):
+        for top, dirs, files in os.walk(input_path):
             for directory in dirs:
                 path = str(os.path.join(top, directory))
                 file_list += glob.glob(path + "/*.txt")
@@ -158,7 +158,7 @@ def generate(args, input_path, conn):
             add_row(line, to_lower)
     model_to_db(cursor)
     conn.commit()
-    conn.close()
+    'conn.close()'
 
 
 if __name__ == '__main__':
@@ -167,6 +167,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     input_path = args.input_dir
     connection_str = "model.sqlite"
+    "print(os.getcwd())"
     # Если пользователь указал модель
     if args.model:
         connection_str = args.model
@@ -174,12 +175,12 @@ if __name__ == '__main__':
         # Если такой файл уже есть, то удаляем
         os.remove(connection_str)
     # Коннектимся к бд
-        with contextlib.closing(sqlite3.connect(connection_str)) as conn:
-            conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT"
-                         " NOT NULL, first TEXT, second TEXT, num INTEGER)")
-            conn.commit()
-            conn.execute("CREATE INDEX first_word_index ON t(first, second)")
-            conn.commit()
-            generate(args, input_path, conn)
+    with contextlib.closing(sqlite3.connect(connection_str)) as conn:
+        conn.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT"
+                     " NOT NULL, first TEXT, second TEXT, num INTEGER)")
+        conn.commit()
+        conn.execute("CREATE INDEX first_word_index ON t(first, second)")
+        conn.commit()
+        generate(args, input_path, conn)
     print(BColors.OKGREEN + 'Done! Model has '
                             'saved to ' + connection_str + BColors.ENDC)
