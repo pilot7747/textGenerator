@@ -1,4 +1,4 @@
-
+# coding: utf-8
 
 import sqlite3
 import re
@@ -38,10 +38,8 @@ last_word = ""
 model = collections.Counter()
 
 
-# Добавляет слово в модель
 def add_word(word1, word2):
     """
-
     Фунцкия, которая добавляет пару
     слов в модель. Пример использования:
     add_word('привет', 'мир')
@@ -50,10 +48,8 @@ def add_word(word1, word2):
     model[(word1, word2)] += 1
 
 
-# Сохраняет модель в бд
 def model_to_db(cursor):
     """
-
     Переводит модель из Counter в sqlite.
     Соответственно, ничего не возвращает,
     принимает collections.Counter.
@@ -64,10 +60,8 @@ def model_to_db(cursor):
         cursor.execute(squerry, (pair[0], pair[1], model[pair]))
 
 
-# Парсим строчку и добавляем ее по словам в модель
 def add_row(text_line, to_lower):
     """
-
     Функция, которая обрабатывает строку текста и добавляет ее в
     модель. Принимает строку и флаг, который говорит, нужно ли ее
     перееводить в lower case.
@@ -90,10 +84,8 @@ def add_row(text_line, to_lower):
         last_word = words[-1]
 
 
-# Создаем парсер
 def create_parser():
     """
-
     Функция, которая создает парсер для аргуентов. Ничего не принимает,
     возвращает argparse.ArgumentParser.
     """
@@ -114,10 +106,8 @@ def create_parser():
     return parser
 
 
-# Возвращает генератор из sys.stdout или из файлов
 def get_files_generator(args, input_path):
     """
-
     Функция, которая позволяет читать одинаково как из файла, так и
     из консоли. Принимает аргументы программы и путь к файлам.
     Возвращает генератор, по которому можно проитерироваться и читать
@@ -143,10 +133,8 @@ def get_files_generator(args, input_path):
             yield f
 
 
-# Генерация модели
 def generate(args, input_path, conn):
     """
-
     Функция, которая по входным данным, начинает решать
     задачу.
     """
@@ -167,7 +155,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     input_path = args.input_dir
     connection_str = "model.sqlite"
-    "print(os.getcwd())"
+    print(os.getcwd())
     # Если пользователь указал модель
     if args.model:
         connection_str = args.model

@@ -6,39 +6,23 @@ import random
 import sys
 
 
-# Функция, которая при SQL запросе, возвращающем одно
-# единственное число, возвращает его
-def get_num(sql_cursor, query):
+def get_val(sql_cursor, query, list_arg):
     """
-
     Бывает полезно иметь функцию, которая при запросе,
     результатом которого является одна единственная
-    числовая ячейка, возвращает значение этой ячейки.
+    ячейка, возвращает значение этой ячейки.
     Вот эта функция.
     """
-    sql_cursor.execute(query)
+    if len(list_arg) == 0:
+        sql_cursor.execute(query, list_arg)
+    else:
+        sql_cursor.execute(query)
     row = [item[0] for item in sql_cursor.fetchall()]
     return row[0]
 
 
-# Достаем слово из модели
-def get_word(sql_cursor, query, list_arg):
-    """
-
-    Бывает полезно иметь функцию, которая при запросе,
-    результатом которого является одна единственная
-    текстовая ячейка, возвращает значение этой ячейки.
-    Вот эта функция.
-    """
-    sql_cursor.execute(query, list_arg)
-    row = [item[0] for item in sql_cursor.fetchall()]
-    return row[0]
-
-
-# Находим следующее слово цепочки
 def get_next_word(sql_cursor, current_word):
     """
-
     Получаем курсор и слово, для которого нужно найти
     следующее. Возвращаем, соответственно, следующее
     слово.
@@ -53,10 +37,8 @@ def get_next_word(sql_cursor, current_word):
     return None
 
 
-# Создаем парсер
 def create_parser():
     """
-
     Функция, которая создает парсер для аргуентов. Ничего не принимает,
     возвращает argparse.ArgumentParser.
     """
@@ -81,7 +63,6 @@ def create_parser():
 
 def output_gen(output):
     """
-
     Функция, которая позволяет читать одинаково как из файла, так и
     из консоли. Принимает путь к файлу. Возвращает генератор, по
     которому можно проитерироваться и писать строки.
@@ -93,10 +74,8 @@ def output_gen(output):
         yield sys.stdout
 
 
-# Генерация текста
 def generate(args, cursor, word):
     """
-
     Функция, которая по входным данным, начинает решать
     задачу.
     """
@@ -132,8 +111,8 @@ if __name__ == '__main__':
         if seedExists == 0:
             raise ValueError('Seed word does not exist')
     else:
-        size = get_num(cursor, "SELECT count(id) FROM t")
-        word = get_word(cursor,
+        size = get_val(cursor, "SELECT count(id) FROM t")
+        word = get_val(cursor,
                         "SELECT first FROM t WHERE id=?",
                         (random.randint(1, size), ))
     # Генерируем цепочку
