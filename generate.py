@@ -97,8 +97,8 @@ if __name__ == '__main__':
     # Парсим аргументы
     parser = create_parser()
     args = parser.parse_args()
-    connectionStr = args.model
-    conn = sqlite3.connect(connectionStr)
+    connection_str = args.model
+    conn = sqlite3.connect(connection_str)
     cursor = conn.cursor()
     word = ""
     random.seed()
