@@ -6,14 +6,14 @@ import random
 import sys
 
 
-def get_val(sql_cursor, query, list_arg):
+def get_val(sql_cursor, query, list_arg=None):
     """
     Бывает полезно иметь функцию, которая при запросе,
     результатом которого является одна единственная
     ячейка, возвращает значение этой ячейки.
     Вот эта функция.
     """
-    if len(list_arg) != 0:
+    if list_arg is not None:
         sql_cursor.execute(query, list_arg)
     else:
         sql_cursor.execute(query)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         if seed_exists == 0:
             raise ValueError('Seed word does not exist')
     else:
-        size = get_val(cursor, "SELECT count(id) FROM t", list())
+        size = get_val(cursor, "SELECT count(id) FROM t")
         word = get_val(cursor,
                         "SELECT first FROM t WHERE id=?",
                         (random.randint(1, size), ))
