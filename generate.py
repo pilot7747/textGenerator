@@ -13,7 +13,7 @@ def get_val(sql_cursor, query, list_arg):
     ячейка, возвращает значение этой ячейки.
     Вот эта функция.
     """
-    if len(list_arg) == 0:
+    if len(list_arg) != 0:
         sql_cursor.execute(query, list_arg)
     else:
         sql_cursor.execute(query)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         if seedExists == 0:
             raise ValueError('Seed word does not exist')
     else:
-        size = get_val(cursor, "SELECT count(id) FROM t")
+        size = get_val(cursor, "SELECT count(id) FROM t", list())
         word = get_val(cursor,
                         "SELECT first FROM t WHERE id=?",
                         (random.randint(1, size), ))
