@@ -1,4 +1,4 @@
-# coding: utf-8
+
 
 import sqlite3
 import re
@@ -33,34 +33,20 @@ def create_connection(db_file):
         connection.close()
 
 
-last_word = ""
-
-model = collections.Counter()
-
-
-def add_word(word1, word2):
-    """
-    Фунцкия, которая добавляет пару
-    слов в модель. Пример использования:
-    add_word('привет', 'мир')
-    """
-    global model
-    model[(word1, word2)] += 1
-
-
-def model_to_db(cursor):
+# Сохраняет модель в бд
+def model_to_db(cursor, model):
     """
     Переводит модель из Counter в sqlite.
     Соответственно, ничего не возвращает,
     принимает collections.Counter.
     """
-    global model
     for pair in model:
         squerry = "INSERT INTO t(first, second, num) VALUES (?, ?, ?)"
         cursor.execute(squerry, (pair[0], pair[1], model[pair]))
 
 
-def add_row(text_line, to_lower):
+# Парсим строчку и добавляем ее по словам в модель
+def add_row(text_line, to_lower, model, last_word):
     """
     Функция, которая обрабатывает строку текста и добавляет ее в
     модель. Принимает строку и флаг, который говорит, нужно ли ее
@@ -69,21 +55,18 @@ def add_row(text_line, to_lower):
     if to_lower:
         text_line = text_line.lower()
     words = re.findall(r"[\w']+", re.sub('\d', ' ', text_line))
-    current_ind = 0
-    global last_word
     # Здесь соединяем последнее слово предыдущей строки
     # и первое слово новой.
     if last_word != "" and len(words) != 0:
-        add_word(last_word, words[0])
-    for word in words[:-1]:
-        word1 = word
-        word2 = words[current_ind + 1]
-        add_word(word1, word2)
-        current_ind = current_ind + 1
+        words.insert(0, last_word)
+    model += collections.Counter(zip(words[:-1], words[1:]))
     if len(words) != 0:
-        last_word = words[-1]
+        return (model, words[-1])
+    else:
+        return (model, last_word)
 
 
+# Создаем парсер
 def create_parser():
     """
     Функция, которая создает парсер для аргуентов. Ничего не принимает,
@@ -106,6 +89,7 @@ def create_parser():
     return parser
 
 
+# Возвращает генератор из sys.stdout или из файлов
 def get_files_generator(args, input_path):
     """
     Функция, которая позволяет читать одинаково как из файла, так и
@@ -133,6 +117,7 @@ def get_files_generator(args, input_path):
             yield f
 
 
+# Генерация модели
 def generate(args, input_path, conn):
     """
     Функция, которая по входным данным, начинает решать
@@ -140,13 +125,18 @@ def generate(args, input_path, conn):
     """
     cursor = conn.cursor()
     to_lower = args.lc
+    model = collections.Counter()
+    last_word = ""
     # Непосредственно добавляем все построчно в модель
     for gen in get_files_generator(args, input_path):
         for line in gen:
-            add_row(line, to_lower)
-    model_to_db(cursor)
+            res = add_row(line, to_lower, model, last_word)
+            # В первом элементе хранится модель,
+            #  во втором последне слово
+            model = res[0]
+            last_word = res[1]
+    model_to_db(cursor, model)
     conn.commit()
-    'conn.close()'
 
 
 if __name__ == '__main__':
@@ -155,7 +145,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     input_path = args.input_dir
     connection_str = "model.sqlite"
-    print(os.getcwd())
+    "print(os.getcwd())"
     # Если пользователь указал модель
     if args.model:
         connection_str = args.model
