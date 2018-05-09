@@ -33,7 +33,6 @@ def create_connection(db_file):
         connection.close()
 
 
-# Сохраняет модель в бд
 def model_to_db(cursor, model):
     """
     Переводит модель из Counter в sqlite.
@@ -45,7 +44,6 @@ def model_to_db(cursor, model):
         cursor.execute(squerry, (pair[0], pair[1], model[pair]))
 
 
-# Парсим строчку и добавляем ее по словам в модель
 def add_row(text_line, to_lower, model, last_word):
     """
     Функция, которая обрабатывает строку текста и добавляет ее в
@@ -66,7 +64,6 @@ def add_row(text_line, to_lower, model, last_word):
         return (model, last_word)
 
 
-# Создаем парсер
 def create_parser():
     """
     Функция, которая создает парсер для аргуентов. Ничего не принимает,
@@ -89,7 +86,6 @@ def create_parser():
     return parser
 
 
-# Возвращает генератор из sys.stdout или из файлов
 def get_files_generator(args, input_path):
     """
     Функция, которая позволяет читать одинаково как из файла, так и
@@ -117,7 +113,6 @@ def get_files_generator(args, input_path):
             yield f
 
 
-# Генерация модели
 def generate(args, input_path, conn):
     """
     Функция, которая по входным данным, начинает решать
